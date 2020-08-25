@@ -13,17 +13,26 @@ pub const Options = struct {
     raw_mode: bool,
     alternate_screen: bool,
     use_handler: bool,
+    _,
+};
+
+pub const SupportedFeatures = struct {
+    mouse_events: bool,
+    // TODO: Figure out what other features should be optionally unsupported
+    //       while implementing backends
+    _,
 };
 
 pub const TermCon = struct {
     screen: view.Screen,
     event_handler: ?event.Handler,
+    supported_features: SupportedFeatures,
 
     const Self = @This();
 
     pub fn init(allocator: *std.mem.Allocator, options: Options) !TermCon {
         var result: TermCon = TermCon{};
-        try backend.init();
+        result.supported_features = try backend.init();
 
         if (options.use_handler) {
             result.event_handler = event.Handler.init();

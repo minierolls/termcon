@@ -9,7 +9,7 @@ primarily to be simple to implement across multiple platforms.
 
 - [x] Add to backend interface for cursor visibility
 - [x] Expose public interface for cursor visibility/movement
-- [ ] Add way to query for supported features
+- [x] Add way to query for supported features
 - [ ] Implement public interface
 - [ ] Implement `termios` backend
 - [ ] Implement `windows` backend

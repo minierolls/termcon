@@ -8,7 +8,10 @@ pub const cursor = @import("unimplemented/cursor.zig");
 pub const screen = @import("unimplemented/screen.zig");
 pub const event = @import("unimplemented/event.zig");
 
-pub fn init() !void {
+const termcon = @import("../termcon.zig");
+pub const SupportedFeatures = termcon.SupportedFeatures;
+
+pub fn init() !SupportedFeatures {
     @compileError("Unimplemented");
 }
 
