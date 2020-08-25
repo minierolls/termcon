@@ -14,3 +14,11 @@ pub fn getPosition() !Position {
 pub fn setPosition(position: Position) !void {
     @compileError("Unimplemented");
 }
+
+pub fn getVisibility() bool {
+    @compileError("Unimplemented");
+}
+
+pub fn setVisibility(visible: bool) !void {
+    @compileError("Unimplemented");
+}

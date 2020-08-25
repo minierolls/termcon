@@ -12,5 +12,5 @@ pub const Position = struct {
 };
 
 pub const Cell = struct {
-    rune: ?Rune, style: ?Style
+    rune: Rune, style: Style
 };
