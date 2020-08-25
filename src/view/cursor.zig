@@ -3,24 +3,26 @@
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
+const backend = @import("../backend.zig").backend;
+const cursor = backend.cursor;
 const view = @import("../view.zig");
 
 pub const Position = view.Position;
 
 pub const Cursor = struct {
     pub fn getPosition() !Position {
-        @compileError("Unimplemented");
+        return cursor.getPosition();
     }
 
     pub fn setPosition(position: Position) !void {
-        @compileError("Unimplemented");
+        return cursor.setPosition(position);
     }
 
     pub fn getVisibility() bool {
-        @compileError("Unimplemented");
+        return cursor.getVisibility();
     }
 
     pub fn setVisibility(visible: bool) !void {
-        @compileError("Unimplemented");
+        return cursor.setVisibility(visible);
     }
 };

@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
+const backend = @import("../backend.zig").backend;
+
 pub const ModifierKey = enum {
     Shift,
     Control,
@@ -65,6 +67,6 @@ pub const Event = struct {
     modifier: ?ModifierKey,
 
     pub fn poll() !?Event {
-        @compileError("Unimplemented");
+        return backend.event.getKeyEvent();
     }
 };

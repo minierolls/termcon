@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
+const backend = @import("../backend.zig").backend;
 const view = @import("../view.zig");
 pub const Position = view.Position;
 
@@ -29,6 +30,6 @@ pub const Event = struct {
     position: ?Position,
 
     pub fn poll() !?Event {
-        @compileError("Unimplemented");
+        return backend.event.getMouseEvent();
     }
 };
