@@ -42,3 +42,11 @@ pub fn setRawMode(enabled: bool) Error!void {
         orig_termios = null;
     }
 }
+
+pub fn getAlternateMode() bool {
+    @compileError("Unimplemented");
+}
+
+pub fn setAlternateMode(enabled: bool) !void {
+    @compileError("Unimplemented");
+}

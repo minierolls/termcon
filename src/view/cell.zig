@@ -3,17 +3,14 @@
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
-const style = @import("style.zig");
-
-pub const Size = struct {
-    rows: u16, cols: u16
-};
+const view = @import("../view.zig");
+const Rune = view.Rune;
+const Style = view.Style;
 
 pub const Position = struct {
     row: u16, col: u16
 };
 
 pub const Cell = struct {
-    value: u8,
-    style: style.Style,
+    rune: ?Rune, style: ?Style
 };

@@ -12,14 +12,35 @@ pub fn build(b: *Builder) !void {
     const mode = b.standardReleaseOptions();
     const target = b.standardTargetOptions(.{});
 
-    const output_path = fs.path.join(b.allocator, &[_][]const u8{ b.build_root, "build" }) catch unreachable;
+    const output_path = fs.path.join(b.allocator, &[_][]const u8{
+        b.build_root,
+        "build",
+    }) catch unreachable;
 
-    const lib = b.addStaticLibrary("termcon", "src/termcon.zig");
-    lib.setBuildMode(mode);
-    lib.setTarget(target);
-    lib.setOutputDir(output_path);
-    lib.linkLibC();
-    // lib.emit_h = true; // TODO: Expose public C interface
+    // TODO: Wrap library with public C interface
+    // const lib = b.addStaticLibrary("termcon", "src/termcon.zig");
+    // lib.setBuildMode(mode);
+    // lib.setTarget(target);
+    // lib.setOutputDir(output_path);
+    // lib.linkLibC();
+    // lib.emit_h = true;
 
-    b.default_step.dependOn(&lib.step);
+    // b.default_step.dependOn(&lib.step);
+
+    const examples_output_path = fs.path.join(b.allocator, &[_][]const u8{
+        b.build_root,
+        "build",
+        "examples",
+    }) catch unreachable;
+
+    var ziro = b.addExecutable("ziro", "examples/ziro.zig");
+    ziro.setBuildMode(mode);
+    ziro.setTarget(target);
+    ziro.setOutputDir(examples_output_path);
+    ziro.linkLibC();
+
+    const ziro_run_cmd = ziro.run();
+
+    const ziro_run_step = b.step("ziro", "Run the `ziro` example");
+    ziro_run_step.dependOn(&ziro_run_cmd.step);
 }
