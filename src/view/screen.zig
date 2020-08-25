@@ -8,10 +8,11 @@ const std = @import("std");
 const backend = @import("../backend.zig").backend;
 
 const view = @import("../view.zig");
-const Cell = view.Cell;
-const Position = view.Position;
-const Rune = view.Rune;
-const Style = view.Style;
+pub const Cell = view.Cell;
+pub const Position = view.Position;
+pub const Rune = view.Rune;
+pub const Style = view.Style;
+pub const Cursor = view.Cursor;
 
 pub const Size = struct {
     rows: u16, cols: u16
@@ -20,6 +21,7 @@ pub const Size = struct {
 pub const Screen = struct {
     buffer: std.ArrayList(std.ArrayList(Cell)),
     size: Size,
+    cursor: Cursor,
 
     const Self = @This();
 

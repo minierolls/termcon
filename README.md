@@ -8,7 +8,7 @@ primarily to be simple to implement across multiple platforms.
 ## Todo
 
 - [x] Add to backend interface for cursor visibility
-- [ ] Expose public interface for cursor visibility/movement
+- [x] Expose public interface for cursor visibility/movement
 - [ ] Add way to query for supported features
 - [ ] Implement public interface
 - [ ] Implement `termios` backend
