@@ -21,10 +21,31 @@ pub const TermCon = struct {
 
     const Self = @This();
 
-    pub fn init(allocator: *std.mem.Allocator, options: Options) TermCon {
-        @compileError("Unimplemented");
+    pub fn init(allocator: *std.mem.Allocator, options: Options) !TermCon {
+        var result: TermCon = TermCon{};
+        try backend.init();
+
+        if (options.use_handler) {
+            result.event_handler = event.Handler.init();
+        } else {
+            result.event_handler = null;
+        }
+
+        if (options.raw_mode) {
+            try backend.setRawMode(true);
+        }
+
+        if (options.alternate_screen) {
+            try backend.setAlternateScreen(true);
+        }
+
+        result.screen = view.Screen.init();
+
+        return result;
     }
     pub fn deinit(self: *Self) void {
-        @compileError("Unimplemented");
+        self.screen.deinit();
+        self.event_handler.deinit();
+        backend.deinit();
     }
 };
