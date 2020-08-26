@@ -48,7 +48,7 @@ pub const TermCon = struct {
             try backend.setAlternateScreen(true);
         }
 
-        result.screen = view.Screen.init();
+        result.screen = try view.Screen.init();
 
         return result;
     }
