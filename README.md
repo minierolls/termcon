@@ -22,6 +22,20 @@ project into reality *sooner*, then please take a look at the following.
 
 ### General Source Control Practices
 
+#### Forks/Pull Requests
+
+When maintaining a fork intended for an eventual pull request, **do not run**
+`git pull`. Instead, prefer a `rebase` workflow:
+
+```
+git fetch upstream --tags
+git rebase upstream/master
+```
+
+Any `merge` commits should be squashed with an interactive rebase (or ammend).
+
+#### Tagging
+
 All commits should be tagged in the subject within angle brackets (`<...>`).
 Some example tags include:
 
