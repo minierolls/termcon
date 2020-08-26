@@ -9,6 +9,8 @@
 const view = @import("../../view.zig");
 
 pub const Size = view.Size;
+pub const Rune = view.Rune;
+pub const Style = view.Style;
 
 /// Get the size of the screen in terms of rows and columns.
 pub fn getSize() !Size {
@@ -17,7 +19,7 @@ pub fn getSize() !Size {
 
 /// Write styled text to the screen at the cursor's position,
 /// moving the cursor accordingly.
-pub fn write(text: []const Cell) !void {
+pub fn write(runes: []const Rune, styles: []const Style) !void {
     @compileError("Unimplemented");
 }
 

@@ -25,7 +25,8 @@ pub const Screen = struct {
     cursor: Cursor,
     default_style: Style,
     allocator: *std.mem.Allocator,
-    buffer: std.ArrayList(Cell),
+    rune_buffer: std.ArrayList(Rune),
+    style_buffer: std.ArrayList(Style),
     buffer_size: Size,
 
     const Self = @This();
@@ -38,17 +39,35 @@ pub const Screen = struct {
             .default_style = Style{}, // TODO
         };
         try result.updateSize();
-        result.buffer = std.ArrayList(Cell).init(allocator);
-        try result.buffer.ensureCapacity(result.buffer_size.rows * result.buffer_size.cols);
-        std.mem.set(Cell, result.buffer.items, Cell{
-            .rune = Rune{ .value = ' ' },
-            .style = result.default_style,
-        });
+
+        result.rune_buffer = std.ArrayList(Rune).init(allocator);
+        result.style_buffer = std.ArrayList(Style).init(allocator);
+
+        try result.rune_buffer.ensureCapacity(
+            result.buffer_size.rows * result.buffer_size.cols,
+        );
+        try result.style_buffer.ensureCapacity(
+            result.buffer_size.rows * result.buffer_size.cols,
+        );
+
+        std.mem.set(
+            Rune,
+            result.rune_buffer.items,
+            ' ',
+        );
+        std.mem.set(
+            Style,
+            result.style_buffer.items,
+            Style{
+                // TODO
+            },
+        );
         return result;
     }
 
     pub fn deinit(self: *Self) void {
-        self.buffer.deinit();
+        self.rune_buffer.deinit();
+        self.style_buffer.deinit();
     }
 
     pub fn draw(
@@ -72,11 +91,12 @@ pub const Screen = struct {
         buffer_origin: ?Position,
         screen_origin: ?Position,
     ) !void {
-        // TODO: Figure out how to get `zig fmt` *not* to inline everything
-        if (size.rows + buffer_origin.row > self.buffer_size.rows or size.cols + buffer_origin.col > self.buffer_size.cols)
+        if (size.rows + buffer_origin.row > self.buffer_size.rows or
+            size.cols + buffer_origin.col > self.buffer_size.cols or
+            size.rows + screen_origin.row > self.size.rows or
+            size.cols + buffer_origin.col > self.size.cols)
             return error.OutOfRange;
-        if (size.rows + screen_origin.row > self.size.rows or size.cols + buffer_origin.col > self.size.cols)
-            return error.OutOfRange;
+        const orig_cursor: Position = try self.cursor.getPosition();
         @compileError("Unimplemented");
     }
 
@@ -108,40 +128,73 @@ pub const Screen = struct {
         if (size.cols < b_cols) {
             var row_index: @Type(b_rows) = 1;
             while (row_index < b_rows) : (row_index += 1) {
+                const start_dest = row_index * b_cols;
+                const end_dest = row_index * b_cols + size.cols;
+
+                const start_source = row_index * size.cols;
+                const end_source = (row_index + 1) * size.cols;
+
                 std.mem.copy(
-                    Cell,
-                    self.buffer.items[row_index * b_cols .. row_index * b_cols + size.cols],
-                    self.buffer.itmes[row_index * size.cols .. (row_index + 1) * size.cols],
+                    Rune,
+                    self.rune_buffer.items[start_dest..end_dest],
+                    self.rune_buffer.items[start_source..end_source],
+                );
+                std.mem.copy(
+                    Style,
+                    self.style_buffer.items[start_dest..end_dest],
+                    self.style_buffer.items[start_source..end_source],
                 );
             }
         } else if (size.cols > b_cols) {
             var row_index: @Type(b_rows) = b_rows;
             while (row_index > 0) : (row_index -= 1) {
-                r_i = row_index - 1;
+                const r_i = row_index - 1;
+
+                const start_dest = r_i * size.cols;
+                const end_dest = r_i * size.cols + b_cols;
+
+                const start_source = r_i * b_cols;
+                const end_source = row_index * b_cols;
+
+                const start_empty = r_i * size.cols + b_cols;
+                const end_empty = row_index * size.cols;
+
                 std.mem.copyBackwards(
-                    Cell,
-                    self.buffer.items[r_i * size.cols .. r_i * size.cols + b_cols],
-                    self.buffer.items[r_i * b_cols .. row_index * b_cols],
+                    Rune,
+                    self.rune_buffer.items[start_dest..end_dest],
+                    self.rune_buffer.items[start_source..end_source],
                 );
                 std.mem.set(
-                    Cell,
-                    self.buffer.items[r_i * size.cols + b_cols .. row_index * size.cols],
-                    fill_cell orelse Cell{
-                        .rune = Rune{ .value = ' ' },
-                        .style = self.default_style,
-                    },
+                    Rune,
+                    self.rune_buffer.items[start_empty..end_empty],
+                    fill_cell.rune orelse ' ',
+                );
+
+                std.mem.copyBackwards(
+                    Style,
+                    self.style_buffer.items[start_dest..end_dest],
+                    self.style_buffer.items[start_source..end_source],
+                );
+                std.mem.set(
+                    Style,
+                    self.style_buffer.items[start_empty..end_empty],
+                    fill_cell.style orelse self.default_style,
                 );
             }
         }
 
         if (size.rows > b_rows) {
+            const start_empty = b_rows * size.cols;
+            const end_empty = size.rows * size.cols;
             std.mem.set(
-                Cell,
-                self.buffer.items[b_rows * size.cols .. size.rows * size.cols],
-                fill_cell orelse Cell{
-                    .rune = Rune{ .value = ' ' },
-                    .style = self.default_style,
-                },
+                Rune,
+                self.rune_buffer.items[start_empty..end_empty],
+                fill_cell.rune orelse ' ',
+            );
+            std.mem.set(
+                Style,
+                self.style_buffer.items[start_empty..end_empty],
+                fill_cell.style orelse self.default_style,
             );
         }
 
@@ -161,23 +214,25 @@ pub const Screen = struct {
         if (position.row >= self.buffer_size.rows or position.col >= self.buffer_size.cols)
             return error.OutOfRange; // TODO: Better understand defining errors
 
-        return self.buffer.items[position.row * self.buffer_size.cols + position.col];
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        return Cell{
+            .rune = self.rune_buffer.items[index],
+            .style = self.style_buffer.items[index],
+        };
     }
 
     pub fn setCell(
         self: *Self,
         position: Position,
-        rune: ?Rune,
-        style: ?Style,
+        cell: Cell,
     ) !void {
         if (position.row >= self.buffer_size.rows or position.col >= self.buffer_size.cols)
             return error.OutOfRange; // TODO: Better understand defining errors
 
-        if (rune == null and style == null) return;
+        const index = position.row * self.buffer_size.cols + position.col;
 
-        self.buffer.items[position.row * self.buffer_size.cols + position.col] = Cell{
-            .rune = rune orelse Rune{ .value = ' ' },
-            .style = style orelse self.default_style,
-        };
+        self.rune_buffer.items[index] = cell.rune;
+        self.style_buffer.items[index] = cell.style;
     }
 };
