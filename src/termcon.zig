@@ -13,14 +13,12 @@ pub const Options = struct {
     raw_mode: bool,
     alternate_screen: bool,
     use_handler: bool,
-    _,
 };
 
 pub const SupportedFeatures = struct {
     mouse_events: bool,
     // TODO: Figure out what other features should be optionally unsupported
     //       while implementing backends
-    _,
 };
 
 pub const TermCon = struct {
