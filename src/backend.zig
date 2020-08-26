@@ -3,5 +3,9 @@
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
-// TODO: Implement import that switches on OS
-pub const backend = @import("backend/unimplemented.zig");
+const builtin = @import("builtin");
+
+pub const backend = switch (builtin.os.tag) {
+    .windows => @import("backend/windows.zig"),
+    else => @import("backend/unimplemented.zig"),
+};
