@@ -17,43 +17,147 @@ pub const TextDecorations = struct {
 
 pub const Color = union(ColorType) {
     Default: ColorDefault,
-    Named: ColorNamed,
+    Named8: ColorNamed8,
+    Named16: ColorNamed16,
+    Bit8: ColorBit8,
     Bit24: ColorBit24,
-    True: ColorTrue,
-    // TODO: Provide conversion functions
 };
 
 pub const ColorType = enum {
     Default,
-    Named,
+    Named8,
+    Named16,
+    Bit8,
     Bit24,
-    True,
 };
 
 pub const ColorDefault = enum {
-    Background,
     Foreground,
-    Highlight,
-    Cursor,
-    _, // TODO
+    Background,
+    SelectionForeground,
+    SelectionBackground,
+    CursorForeground,
+    CursorBackground,
+    Bold,
 };
 
-pub const ColorNamed; // TODO
+/// Color names and values based on:
+/// [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+pub const ColorNamed8 = enum(u3) {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+};
+
+/// Color names and values based on:
+/// [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+pub const ColorNamed16 = enum(u4) {
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+
+    pub fn fromNamed8(name: ColorNamed8) ColorNamed16 {
+        return switch (name) {
+            ColorNamed8.Black => Black,
+            ColorNamed8.Red => Red,
+            ColorNamed8.Green => Green,
+            ColorNamed8.Yellow => Yellow,
+            ColorNamed8.Blue => Blue,
+            ColorNamed8.Magenta => Magenta,
+            ColorNamed8.Cyan => Cyan,
+            ColorNamed8.White => White,
+        };
+    }
+};
+
+/// Color values based on:
+/// [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+pub const ColorBit8 = struct {
+    code: u8,
+
+    pub fn init(code: u8) ColorBit8 {
+        return ColorBit8{ .code = code };
+    }
+
+    pub fn fromNamed8(name: ColorNamed8) ColorBit8 {
+        return ColorBit8{ .code = @enumToInt(name) };
+    }
+
+    pub fn fromNamed16(name: ColorNamed16) ColorBit8 {
+        return ColorBit8{ .code = @enumToInt(name) };
+    }
+};
 
 pub const ColorBit24 = struct {
-    hex: u24,
+    code: u24,
 
-    pub fn initHex(hex: u24) ColorBit24 {
-        return ColorBit24{ .hex = hex };
+    pub fn init(code: u24) ColorBit24 {
+        return ColorBit24{ .code = code };
     }
 
     pub fn initRGB(red: u8, green: u8, blue: u8) ColorBit24 {
-        var hex: u32 = 0;
-        hex |= blue;
-        hex |= @as(u16, green) << 8;
-        hex |= @as(u24, red) << 16;
-        return ColorBit24{ .hex = hex };
+        var code: u24 = 0;
+        code |= blue;
+        code |= @as(u16, green) << 8;
+        code |= @as(u24, red) << 16;
+        return ColorBit24{ .code = code };
+    }
+
+    /// Color values based on:
+    /// [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+    /// VGA values
+    pub fn fromNamed8(name: ColorNamed8) ColorBit24 {
+        return switch (name) {
+            ColorNamed8.Black => self.initRGB(0, 0, 0),
+            ColorNamed8.Red => self.initRGB(170, 0, 0),
+            ColorNamed8.Green => self.initRGB(0, 170, 0),
+            ColorNamed8.Yellow => self.initRGB(170, 85, 0),
+            ColorNamed8.Blue => self.initRGB(0, 0, 170),
+            ColorNamed8.Magenta => self.initRGB(170, 0, 170),
+            ColorNamed8.Cyan => self.initRGB(0, 170, 170),
+            ColorNamed8.White => self.initRGB(170, 170, 170),
+        };
+    }
+
+    /// Color values based on:
+    /// [ANSI Escape Codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+    /// VGA values
+    pub fn fromNamed16(name: ColorNamed16) ColorBit24 {
+        return switch (name) {
+            ColorNamed16.Black => self.initRGB(0, 0, 0),
+            ColorNamed16.Red => self.initRGB(170, 0, 0),
+            ColorNamed16.Green => self.initRGB(0, 170, 0),
+            ColorNamed16.Yellow => self.initRGB(170, 85, 0),
+            ColorNamed16.Blue => self.initRGB(0, 0, 170),
+            ColorNamed16.Magenta => self.initRGB(170, 0, 170),
+            ColorNamed16.Cyan => self.initRGB(0, 170, 170),
+            ColorNamed16.White => self.initRGB(170, 170, 170),
+            ColorNamed16.BrightBlack => self.initRGB(85, 85, 85),
+            ColorNamed16.BrightRed => self.initRGB(255, 85, 85),
+            ColorNamed16.BrightGreen => self.initRGB(85, 255, 85),
+            ColorNamed16.BrightYellow => self.initRGB(255, 255, 85),
+            ColorNamed16.BrightBlue => self.initRGB(85, 85, 255),
+            ColorNamed16.BrightMagenta => self.initRGB(255, 85, 255),
+            ColorNamed16.BrightCyan => self.initRGB(85, 255, 255),
+            ColorNamed16.BrightWhite => self.initRGB(255, 255, 255),
+        };
     }
 };
-
-pub const ColorTrue; // TODO
