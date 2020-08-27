@@ -5,6 +5,7 @@
 
 #Whitelist
 !README.md
+!CONTRIBUTING.md
 !LICENSE
 !.gitignore
 !build.zig
