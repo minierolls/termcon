@@ -31,7 +31,7 @@ pub const TermCon = struct {
     pub fn init(allocator: *std.mem.Allocator, options: Options) !TermCon {
         var supported_features = try backend.init();
 
-        var event_handler = if (options.use_handler) event.Handler.init() else null;
+        var event_handler = if (options.use_handler) event.Handler.init(allocator) else null;
 
         if (options.raw_mode) {
             try backend.setRawMode(true);
@@ -41,7 +41,7 @@ pub const TermCon = struct {
             try backend.setAlternateScreen(true);
         }
 
-        var screen = try view.Screen.init();
+        var screen = try view.Screen.init(allocator, null);
 
         return TermCon{
             .screen = screen,
@@ -51,7 +51,9 @@ pub const TermCon = struct {
     }
     pub fn deinit(self: *Self) void {
         self.screen.deinit();
-        self.event_handler.deinit();
+        if (self.event_handler) |*handler| {
+            handler.deinit();
+        }
         backend.deinit();
     }
 };
