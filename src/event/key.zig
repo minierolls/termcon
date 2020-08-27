@@ -4,8 +4,10 @@
 // This file is part of the `termcon` project under the MIT license.
 
 const backend = @import("../backend.zig").backend;
+const view = @import("../view.zig");
+pub const Rune = view.Rune;
 
-pub const ModifierKey = enum {
+pub const ModifierKey = enum(u4) {
     Shift,
     Control,
     Alternate,
@@ -56,7 +58,7 @@ pub const ValueType = enum {
 };
 
 pub const Value = union(ValueType) {
-    AlphaNumeric: u8,
+    AlphaNumeric: Rune,
     Function: FunctionKey,
     Navigation: NavigationKey,
     Edit: EditKey,

@@ -15,7 +15,7 @@ pub const Button = enum {
     Fifth,
 };
 
-pub const Action = enum {
+pub const Action = enum(u4) {
     ScrollUp,
     ScrollDown,
     Click,
