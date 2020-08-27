@@ -10,7 +10,8 @@ primarily to be simple to implement across multiple platforms.
 - [x] Add to backend interface for cursor visibility
 - [x] Expose public interface for cursor visibility/movement
 - [x] Add way to query for supported features
-- [ ] Implement public interface
+- [ ] Implement initial version of public interface
+- [ ] Add `Mutex` locks for thread safety
 - [ ] Implement `termios` backend
 - [ ] Implement `windows` backend
 
