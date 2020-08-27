@@ -26,4 +26,5 @@ pub fn main() !void {
     };
 
     var tcon = try termcon.TermCon.init(&gpa.allocator, options);
+    defer _ = tcon.deinit();
 }

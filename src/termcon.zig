@@ -51,7 +51,9 @@ pub const TermCon = struct {
     }
     pub fn deinit(self: *Self) void {
         self.screen.deinit();
-        self.event_handler.deinit();
+        if (self.event_handler) |*handler| {
+            handler.deinit();
+        }
         backend.deinit();
     }
 };
