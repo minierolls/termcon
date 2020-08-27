@@ -1,12 +1,16 @@
-// Copyright (c) 2020 John Namgung.
+// Copyright (c) 2020 John Namgung, Luke I. Wilson.
 
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
-pub const config = @import("unimplemented/config.zig");
-pub const cursor = @import("unimplemented/cursor.zig");
-pub const screen = @import("unimplemented/screen.zig");
-pub const event = @import("unimplemented/event.zig");
+const windows = @cImport({
+    @cInclude("Windows.h");
+});
+
+pub const config = @import("windows/config.zig");
+pub const cursor = @import("windows/cursor.zig");
+pub const screen = @import("windows/screen.zig");
+pub const event = @import("windows/event.zig");
 
 const termcon = @import("../termcon.zig");
 pub const SupportedFeatures = termcon.SupportedFeatures;
