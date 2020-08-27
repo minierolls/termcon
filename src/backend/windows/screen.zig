@@ -23,16 +23,6 @@ pub fn write(runes: []const Rune, styles: []const Style) !void {
     @compileError("Unimplemented");
 }
 
-/// Clear the rune and styles at the cursor's location.
-pub fn clear() !void {
-    @compileError("Unimplemented");
-}
-
-/// Clear all runes and styles at the cursor's row.
-pub fn clearRow() !void {
-    @compileError("Unimplemented");
-}
-
 /// Clear all runes and styles on the screen.
 pub fn clearScreen() !void {
     @compileError("Unimplemented");
