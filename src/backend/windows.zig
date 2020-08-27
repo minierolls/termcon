@@ -13,8 +13,11 @@ const std = @import("std");
 const termcon = @import("../termcon.zig");
 pub const SupportedFeatures = termcon.SupportedFeatures;
 
+pub var hConsole: std.os.windows.HANDLE = undefined;
+
 pub fn init() !SupportedFeatures {
-    // @compileError("Unimplemented Windows backend");
+    hConsole = try std.os.windows.GetStdHandle(std.os.windows.STD_OUTPUT_HANDLE);
+    
     var size = try screen.getSize(); // Use Windows.h to print the console window size
     std.debug.warn("{} {}\n", .{size.cols, size.rows});
 

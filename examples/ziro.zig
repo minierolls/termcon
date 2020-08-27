@@ -27,4 +27,7 @@ pub fn main() !void {
 
     var tcon = try termcon.TermCon.init(&gpa.allocator, options);
     defer _ = tcon.deinit();
+
+    var cpos = try tcon.screen.cursor.getPosition();
+    std.debug.warn("cpos: x:{} y:{}", .{cpos.col, cpos.row});
 }

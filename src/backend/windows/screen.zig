@@ -6,6 +6,7 @@
 //! This module handles provides functions to interface with the terminal
 //! screen.
 
+const root = @import("../windows.zig");
 const view = @import("../../view.zig");
 
 const std = @import("std");
@@ -17,8 +18,7 @@ pub const Style = view.Style;
 
 /// Get the size of the screen in terms of rows and columns.
 pub fn getSize() !Size {
-    var handle = try getConsoleHandle();
-    var csbi = try getScreenBufferInfo(handle);
+    var csbi = try getScreenBufferInfo();
 
     var size = Size {
         .rows = @intCast(u16, csbi.srWindow.Right - csbi.srWindow.Left + 1),
@@ -41,8 +41,7 @@ pub fn clearScreen() !void {
     // in Powershell and CMD: write an empty cell to every
     // visible cell on the screen.
 
-    var hConsole = try getConsoleHandle();
-    var csbi = try getScreenBufferInfo(hConsole);
+    var csbi = try getScreenBufferInfo();
     var start_pos = windows.COORD { .X = 0, .Y = 0 };
     var chars_written: windows.DWORD = 0;
 
@@ -52,24 +51,20 @@ pub fn clearScreen() !void {
     // var console_size = @intCast(u32, (csbi.srWindow.Right - csbi.srWindow.Left + 1) * (csbi.srWindow.Bottom - csbi.srWindow.Top + 1));
 
     // Fill screen with blanks
-    if (windows.kernel32.FillConsoleOutputCharacterA(hConsole, @as(windows.TCHAR, ' '), console_size, start_pos, &chars_written) == 0) {
+    if (windows.kernel32.FillConsoleOutputCharacterA(root.hConsole, @as(windows.TCHAR, ' '), console_size, start_pos, &chars_written) == 0) {
         return error.SomeDrawError; // TODO: seriously need real errors
     }
 
     // Get the current text attribute
-    // csbi = try getScreenBufferInfo(hConsole);
+    // csbi = try getScreenBufferInfo();
 
-    if (windows.kernel32.FillConsoleOutputAttribute(hConsole, csbi.wAttributes, console_size, start_pos, &chars_written) == 0) {
+    if (windows.kernel32.FillConsoleOutputAttribute(root.hConsole, csbi.wAttributes, console_size, start_pos, &chars_written) == 0) {
         return error.SomeDrawError;
     }
 }
 
-fn getConsoleHandle() !windows.HANDLE {
-    return windows.kernel32.GetStdHandle(windows.STD_OUTPUT_HANDLE) orelse error.InvalidHandle;
-}
-
-fn getScreenBufferInfo(hConsole: windows.HANDLE) !windows.kernel32.CONSOLE_SCREEN_BUFFER_INFO {
+pub fn getScreenBufferInfo() !windows.kernel32.CONSOLE_SCREEN_BUFFER_INFO {
     var csbi: windows.kernel32.CONSOLE_SCREEN_BUFFER_INFO = undefined;
-    if (windows.kernel32.GetConsoleScreenBufferInfo(hConsole, &csbi) == 0) return error.FailedToGetBuffer; // TODO: use GetLastError and zig wrapper function to return real error value
+    if (windows.kernel32.GetConsoleScreenBufferInfo(root.hConsole, &csbi) == 0) return error.FailedToGetBufferInfo;
     return csbi;
 }
