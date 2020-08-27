@@ -33,8 +33,11 @@ pub const Screen = struct {
 
     pub fn init(allocator: *std.mem.Allocator, buffer_size: ?Size) !Screen {
         var result: Screen = Screen{
+            .size = Size{ .rows = 0, .cols = 0 },
             .cursor = Cursor{},
             .allocator = allocator,
+            .rune_buffer = std.ArrayList(Rune).init(allocator),
+            .style_buffer = std.ArrayList(Style).init(allocator),
             .buffer_size = buffer_size orelse Size{ .rows = 300, .cols = 100 },
             .default_style = Style{
                 .fg_color = view.Color{
@@ -51,9 +54,6 @@ pub const Screen = struct {
             },
         };
         try result.updateSize();
-
-        result.rune_buffer = std.ArrayList(Rune).init(allocator);
-        result.style_buffer = std.ArrayList(Style).init(allocator);
 
         try result.rune_buffer.ensureCapacity(
             result.buffer_size.rows * result.buffer_size.cols,

@@ -19,12 +19,19 @@ pub const Handler = struct {
 
     const Self = @This();
 
-    pub fn init() Handler {
-        @compileError("Unimplemented");
+    pub fn init(allocator: *std.mem.Allocator) Handler {
+        // TODO: implement initializer function
+        return Handler {
+            .key_callbacks = std.ArrayList(fn (e: key.Event) void).init(allocator),
+            .mouse_callbacks = std.ArrayList(fn (e: mouse.Event) void).init(allocator),
+            .resize_callbacks = std.ArrayList(fn (e: Size) void).init(allocator),
+        };
     }
 
     pub fn deinit(self: *Self) void {
-        @compileError("Unimplemented");
+        self.key_callbacks.deinit();
+        self.mouse_callbacks.deinit();
+        self.resize_callbacks.deinit();
     }
 
     pub fn start(self: *Self) !void {
