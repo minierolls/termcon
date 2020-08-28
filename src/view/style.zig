@@ -40,8 +40,8 @@ pub const Color = union(ColorType) {
 
     const Self = @This();
 
-    pub fn equal(self: *const Self, other: Color) bool {
-        if (@TagType(self) != @TagType(other)) return false;
+    pub fn equal(self: Self, other: Color) bool {
+        if (@as(ColorType, self) != @as(ColorType, other)) return false;
         return switch (self) {
             ColorType.Default => |v| v == other.Default,
             ColorType.Named8 => |v| v == other.Named8,

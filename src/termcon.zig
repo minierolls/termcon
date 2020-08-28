@@ -31,17 +31,21 @@ pub const TermCon = struct {
     pub fn init(allocator: *std.mem.Allocator, options: Options) !TermCon {
         var supported_features = try backend.init();
 
-        var event_handler = if (options.use_handler) event.Handler.init(allocator) else null;
-
         if (options.raw_mode) {
-            try backend.setRawMode(true);
+            try backend.config.setRawMode(true);
         }
 
         if (options.alternate_screen) {
-            try backend.setAlternateScreen(true);
+            try backend.config.setAlternateScreen(true);
+            try backend.screen.clearScreen();
         }
 
         var screen = try view.Screen.init(allocator, null);
+
+        var event_handler = if (options.use_handler)
+            event.Handler.init(allocator, &screen)
+        else
+            null;
 
         return TermCon{
             .screen = screen,

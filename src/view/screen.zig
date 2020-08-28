@@ -76,9 +76,11 @@ pub const Screen = struct {
         try result.rune_buffer.ensureCapacity(
             result.buffer_size.rows * result.buffer_size.cols,
         );
+        result.rune_buffer.expandToCapacity();
         try result.style_buffer.ensureCapacity(
             result.buffer_size.rows * result.buffer_size.cols,
         );
+        result.style_buffer.expandToCapacity();
 
         std.mem.set(
             Rune,
@@ -108,7 +110,7 @@ pub const Screen = struct {
         while (self.diff_buffer.count() > 0) {
             // Get row range to draw
             const diff_position = self.diff_buffer.remove();
-            var final_col = u16;
+            var final_col: u16 = diff_position.col;
             while (self.diff_buffer.peek()) |next| {
                 if (next.row != diff_position.row)
                     break;
@@ -157,6 +159,7 @@ pub const Screen = struct {
 
         if (size.rows * size.cols != b_rows * b_cols) {
             try self.buffer.ensureCapacity(size.rows * size.cols);
+            self.buffer.expandToCapacity();
         }
 
         if (size.cols < b_cols) {
@@ -303,9 +306,9 @@ pub const Screen = struct {
 
         const index = position.row * self.buffer_size.cols + position.col;
 
-        if (!self.rune_buffer.items[index].equal(cell.rune) or
+        if (self.rune_buffer.items[index] != cell.rune or
             !self.style_buffer.items[index].equal(cell.style))
-            addChecked(&self.diff_buffer, position);
+            try addChecked(&self.diff_buffer, position);
 
         self.rune_buffer.items[index] = cell.rune;
         self.style_buffer.items[index] = cell.style;
