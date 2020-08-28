@@ -6,3 +6,15 @@
 pub const config = @import("termios/config.zig");
 pub const cursor = @import("termios/cursor.zig");
 pub const screen = @import("termios/screen.zig");
+pub const event = @import("termios/event.zig");
+
+const termcon = @import("../termcon.zig");
+pub const SupportedFeatures = termcon.SupportedFeatures;
+
+pub fn init() !SupportedFeatures {
+    @compileError("Unimplemented");
+}
+
+pub fn deinit() void {
+    @compileError("Unimplemented");
+}

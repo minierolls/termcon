@@ -12,13 +12,11 @@ const std = @import("std");
 const stdin = std.io.getStdIn();
 const stdout = std.io.getStdOut();
 
-const common = @import("../../common.zig");
-const cell = common.cell;
+const view = @import("../../view.zig");
 
-// TODO: Use better error
-pub const Error = error.Unexpected;
+pub const Position = view.Position;
 
-pub fn getPosition() !cell.Position {
+pub fn getPosition() !Position {
     var buf: [32]u8 = undefined; // TODO: Tune buffer size
 
     _ = try stdout.writer().write("\x1b[6n");
@@ -42,12 +40,20 @@ pub fn getPosition() !cell.Position {
         return Error;
     }
 
-    return cell.Position{
+    return Position{
         .row = rows,
         .col = cols,
     };
 }
 
-pub fn setPosition(position: cell.Position) !void {
+pub fn setPosition(position: Position) !void {
+    @compileError("Unimplemented");
+}
+
+pub fn getVisibility() bool {
+    @compileError("Unimplemented");
+}
+
+pub fn setVisibility(visible: bool) !void {
     @compileError("Unimplemented");
 }

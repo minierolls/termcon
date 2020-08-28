@@ -12,10 +12,18 @@ const std = @import("std");
 const stdin = std.io.getStdIn();
 const stdout = std.io.getStdOut();
 
-const common = @import("../../common.zig");
-const cell = common.cell;
+const cursor = @import("cursor.zig");
 
-pub fn getSize(self: *Self) !cell.Size {
+const view = @import("../../view.zig");
+
+pub const Size = view.Size;
+pub const Rune = view.Rune;
+pub const Style = view.Style;
+
+const Position = view.Position;
+
+/// Get the size of the screen in terms of rows and columns.
+pub fn getSize() !Size {
     var ws: c.winsize = c.winsize{};
 
     var filehandle = stdout.handle();
@@ -23,15 +31,26 @@ pub fn getSize(self: *Self) !cell.Size {
 
     if (c.ioctl(filehandle, c.TIOCGWINSZ, &ws) < 0 or ws.ws_col == 0 or ws.ws_row == 0) {
         _ = try stdout.writer().write("\x1b[65535C\x1b[65535B");
-        const position: cell.Position = try cursor.getPosition();
-        return cell.Size{
+        const position: Position = try cursor.getPosition();
+        return Size{
             .rows = position.row,
             .cols = position.col,
         };
     } else {
-        return cell.Size{
+        return Size{
             .rows = ws.ws_row,
             .cols = ws.ws_col,
         };
     }
+}
+
+/// Write styled text to the screen at the cursor's position,
+/// moving the cursor accordingly.
+pub fn write(runes: []const Rune, styles: []const Style) !void {
+    @compileError("Unimplemented");
+}
+
+/// Clear all runes and styles on the screen.
+pub fn clearScreen() !void {
+    @compileError("Unimplemented");
 }
