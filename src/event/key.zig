@@ -7,6 +7,29 @@ const backend = @import("../backend.zig").backend;
 const view = @import("../view.zig");
 pub const Rune = view.Rune;
 
+pub const Event = struct {
+    value: Value,
+    modifier: ?ModifierKey,
+
+    pub fn poll() !?Event {
+        return backend.event.getKeyEvent();
+    }
+};
+
+pub const Value = union(ValueType) {
+    AlphaNumeric: Rune,
+    Function: FunctionKey,
+    Navigation: NavigationKey,
+    Edit: EditKey,
+};
+
+pub const ValueType = enum {
+    AlphaNumeric,
+    Function,
+    Navigation,
+    Edit,
+};
+
 pub const ModifierKey = enum(u4) {
     Shift,
     Control,
@@ -48,27 +71,4 @@ pub const EditKey = enum {
     Backspace,
     Insert,
     Delete,
-};
-
-pub const ValueType = enum {
-    AlphaNumeric,
-    Function,
-    Navigation,
-    Edit,
-};
-
-pub const Value = union(ValueType) {
-    AlphaNumeric: Rune,
-    Function: FunctionKey,
-    Navigation: NavigationKey,
-    Edit: EditKey,
-};
-
-pub const Event = struct {
-    value: Value,
-    modifier: ?ModifierKey,
-
-    pub fn poll() !?Event {
-        return backend.event.getKeyEvent();
-    }
 };

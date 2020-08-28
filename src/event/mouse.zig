@@ -7,6 +7,16 @@ const backend = @import("../backend.zig").backend;
 const view = @import("../view.zig");
 pub const Position = view.Position;
 
+pub const Event = struct {
+    action: Action,
+    button: ?Button,
+    position: ?Position,
+
+    pub fn poll() !?Event {
+        return backend.event.getMouseEvent();
+    }
+};
+
 pub const Button = enum {
     Main, // Left Mouse Button
     Secondary, // Right Mouse Button
@@ -22,14 +32,4 @@ pub const Action = enum(u4) {
     DoubleClick,
     TripleClick,
     _,
-};
-
-pub const Event = struct {
-    action: Action,
-    button: ?Button,
-    position: ?Position,
-
-    pub fn poll() !?Event {
-        return backend.event.getMouseEvent();
-    }
 };
