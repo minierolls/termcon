@@ -37,6 +37,7 @@ pub fn build(b: *Builder) !void {
     ziro.setBuildMode(mode);
     ziro.setTarget(target);
     ziro.setOutputDir(examples_output_path);
+    ziro.addPackagePath("termcon", "src/termcon.zig");
     ziro.linkLibC();
 
     const ziro_run_cmd = ziro.run();

@@ -7,13 +7,10 @@
 //! Ziro is inspired by [kilo](https://github.com/antirez/kilo),
 //! and is intended to provide an example of using the `termcon`
 //! library.
-//!
-//! BUILDING
-//! From the examples directory: zig build-exe ziro.zig --main-pkg-path ../
 
 const std = @import("std");
 
-const termcon = @import("../src/termcon.zig");
+const termcon = @import("termcon");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -31,5 +28,11 @@ pub fn main() !void {
     // var cpos = try tcon.screen.cursor.getPosition();
     // std.debug.warn("cpos: x:{} y:{}", .{cpos.col, cpos.row});
 
-    try tcon.screen.setCell(termcon.view.Position{ .row = 0, .col = 0 }, termcon.view.Cell { .rune = 'X', .style = tcon.screen.getDefaultStyle() });
+    try tcon.screen.setCell(
+        termcon.view.Position{ .row = 0, .col = 0 },
+        termcon.view.Cell{
+            .rune = 'X',
+            .style = tcon.screen.getDefaultStyle(),
+        },
+    );
 }
