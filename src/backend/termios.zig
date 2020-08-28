@@ -12,9 +12,9 @@ const termcon = @import("../termcon.zig");
 pub const SupportedFeatures = termcon.SupportedFeatures;
 
 pub fn init() !SupportedFeatures {
-    @compileError("Unimplemented");
+    return SupportedFeatures{
+        .mouse_events = true,
+    };
 }
 
-pub fn deinit() void {
-    @compileError("Unimplemented");
-}
+pub fn deinit() void {}

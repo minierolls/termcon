@@ -5,7 +5,7 @@
 
 const c = @cImport({
     @cInclude("termios.h");
-    @cInclude("ioctl.h");
+    @cInclude("sys/ioctl.h");
 });
 
 const std = @import("std");
@@ -24,9 +24,9 @@ const Position = view.Position;
 
 /// Get the size of the screen in terms of rows and columns.
 pub fn getSize() !Size {
-    var ws: c.winsize = c.winsize{};
+    var ws: c.winsize = undefined;
 
-    var filehandle = stdout.handle();
+    var filehandle = stdout.handle;
     // TODO: Set to "/dev/tty" raw filehandle if available
 
     if (c.ioctl(filehandle, c.TIOCGWINSZ, &ws) < 0 or ws.ws_col == 0 or ws.ws_row == 0) {
@@ -47,10 +47,15 @@ pub fn getSize() !Size {
 /// Write styled text to the screen at the cursor's position,
 /// moving the cursor accordingly.
 pub fn write(runes: []const Rune, styles: []const Style) !void {
-    @compileError("Unimplemented");
+    _ = try stdout.writer().write(runes);
+}
+
+/// Clear all runes and styles at the cursor's row.
+pub fn clearLine() !void {
+    _ = try stdout.writer().write("\x1b[2K");
 }
 
 /// Clear all runes and styles on the screen.
 pub fn clearScreen() !void {
-    @compileError("Unimplemented");
+    _ = try stdout.writer().write("\x1b[2J");
 }
