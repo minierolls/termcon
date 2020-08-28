@@ -104,105 +104,34 @@ pub const Screen = struct {
     }
 
     pub fn draw(self: *Self) !void {
-        // TODO
-    }
-
-    // TODO: Remove
-    pub fn drawPartial(
-        self: *Self,
-        size: Size,
-        buffer_origin: ?Position,
-        screen_origin: ?Position,
-    ) !void {
-        if (size.rows + buffer_origin.row > self.buffer_size.rows or
-            size.cols + buffer_origin.col > self.buffer_size.cols or
-            size.rows + screen_origin.row > self.size.rows or
-            size.cols + buffer_origin.col > self.size.cols)
-            return error.OutOfRange;
         const orig_cursor: Position = try self.cursor.getPosition();
+        while (self.diff_buffer.count() > 0) {
+            // Get row range to draw
+            const diff_position = self.diff_buffer.remove();
+            var final_col = u16;
+            while (self.diff_buffer.peek()) |next| {
+                if (next.row != diff_position.row)
+                    break;
 
-        // Every row needs an extra column for newline and
-        // final null terminating character
-        const write_buffer_size = self.size.rows * (self.size.cols + 1);
-        var write_runes: [write_buffer_size]Rune = undefined;
-        var write_styles: [write_buffer_size]Style = undefined;
-
-        {
-            var row_index: usize = 0;
-            while (row_index < self.size.rows) : (row_index += 1) {
-                if (row_index < screen_origin.row or
-                    row_index > screen_origin.row + size.rows)
-                {
-                    const start_row = row_index * (self.size.cols + 1);
-                    const end_row = start_row + self.size.cols;
-                    std.mem.set(Rune, write_runes[start_row..end_row], ' ');
-                    write_runes[end_row] = 'n';
-                    std.mem.set(
-                        Style,
-                        write_styles[start_row..(end_row + 1)],
-                        self.default_style,
-                    );
-                    continue;
-                }
-
-                const buf_row = row_index -
-                    screen_origin.row +
-                    buffer_origin.row;
-                const start_buf = buf_row *
-                    self.buffer_size.cols +
-                    buffer_origin.col;
-                const end_buf = start_buf + size.cols;
-
-                const start_empty_row = row_index * (self.size.cols + 1);
-                const end_empty_row = start_empty_row + self.size.cols;
-                const start_row = row_index *
-                    (self.size.cols + 1) +
-                    screen_origin.col;
-                const end_row = start_row + size.cols;
-
-                if (screen_origin.col > 0) {
-                    std.mem.set(
-                        Rune,
-                        write_runes[start_empty_row..start_row],
-                        ' ',
-                    );
-                    std.mem.set(
-                        Style,
-                        write_styles[start_empty_row..start_row],
-                        self.default_style,
-                    );
-                }
-                std.mem.copy(
-                    Rune,
-                    write_runes[start_row..end_row],
-                    self.rune_buffer[start_buf..end_buf],
-                );
-                std.mem.copy(
-                    Style,
-                    write_styles[start_row..end_row],
-                    self.style_buffer[start_buf..end_buf],
-                );
-
-                if (screen_origin.col + size.cols < self.size.cols) {
-                    std.mem.set(
-                        Rune,
-                        write_runes[end_row..end_empty_row],
-                        ' ',
-                    );
-                    std.mem.set(
-                        Style,
-                        write_styles[end_row..end_empty_row],
-                        self.default_style,
-                    );
-                }
-
-                write_runes[end_empty_row] = '\n';
-                write_styles[end_empty_row] = self.default_style;
+                final_col = next.col;
+                _ = self.diff_buffer.remove();
             }
+
+            // Move cursor and draw row
+            try self.cursor.setPosition(diff_position);
+            const range_start = diff_position.row *
+                self.buffer_size.cols +
+                diff_position.col;
+            const range_end = diff_position.row *
+                self.buffer_size.cols +
+                final_col + 1;
+            try backend.screen.write(
+                self.rune_buffer.items[range_start..range_end],
+                self.style_buffer.items[range_start..range_end],
+            );
         }
 
-        write_runes[write_runes.len - 1] = 0;
-        try backend.screen.write(write_runes, write_styles);
+        try self.cursor.setPosition(orig_cursor);
     }
 
     pub fn getSize(self: *const Self) Size {
