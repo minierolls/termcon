@@ -31,7 +31,7 @@ pub fn getSize() !Size {
 /// Write styled text to the screen at the cursor's position,
 /// moving the cursor accordingly.
 pub fn write(runes: []const Rune, styles: []const Style) !void {
-    @compileError("Unimplemented");
+    std.debug.assert(runes.len == styles.len);
 }
 
 /// Clear all runes and styles on the screen.

@@ -28,6 +28,8 @@ pub fn main() !void {
     var tcon = try termcon.TermCon.init(&gpa.allocator, options);
     defer _ = tcon.deinit();
 
-    var cpos = try tcon.screen.cursor.getPosition();
-    std.debug.warn("cpos: x:{} y:{}", .{cpos.col, cpos.row});
+    // var cpos = try tcon.screen.cursor.getPosition();
+    // std.debug.warn("cpos: x:{} y:{}", .{cpos.col, cpos.row});
+
+    try tcon.screen.setCell(termcon.view.Position{ .row = 0, .col = 0 }, termcon.view.Cell { .rune = 'X', .style = tcon.screen.getDefaultStyle() });
 }
