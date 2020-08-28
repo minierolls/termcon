@@ -17,15 +17,13 @@ pub const Style = view.Style;
 
 /// Get the size of the screen in terms of rows and columns.
 pub fn getSize() !Size {
-    var csbi: windows.kernel32.CONSOLE_SCREEN_BUFFER_INFO = undefined;
-    var size = Size {
-        .rows = 0, .cols = 0
-    };
+    var handle = try getConsoleHandle();
+    var csbi = try getScreenBufferInfo(handle);
 
-    var handle = windows.kernel32.GetStdHandle(windows.STD_OUTPUT_HANDLE) orelse return error.InvalidHandle;
-    if (windows.kernel32.GetConsoleScreenBufferInfo(handle, &csbi) == 0) return error.FailedToGetBuffer; // TODO: use GetLastError and zig wrapper function to return real error value
-    size.cols = @intCast(u16, csbi.srWindow.Right - csbi.srWindow.Left + 1);
-    size.rows = @intCast(u16, csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
+    var size = Size {
+        .rows = @intCast(u16, csbi.srWindow.Right - csbi.srWindow.Left + 1),
+        .cols = @intCast(u16, csbi.srWindow.Bottom - csbi.srWindow.Top + 1)
+    };
 
     return size;
 }
@@ -38,5 +36,40 @@ pub fn write(runes: []const Rune, styles: []const Style) !void {
 
 /// Clear all runes and styles on the screen.
 pub fn clearScreen() !void {
-    @compileError("Unimplemented");
+    // This function does the same as Microsoft recommends,
+    // and is how the cls and clear commands are implemented
+    // in Powershell and CMD: write an empty cell to every
+    // visible cell on the screen.
+
+    var hConsole = try getConsoleHandle();
+    var csbi = try getScreenBufferInfo(hConsole);
+    var start_pos = windows.COORD { .X = 0, .Y = 0 };
+    var chars_written: windows.DWORD = 0;
+
+    // Get number of cells in the buffer
+    // TODO: currently uses buffer size, later needs to use actual screen size for optimization
+    var console_size: windows.DWORD = @intCast(u32, csbi.dwSize.X) * @intCast(u32, csbi.dwSize.Y);
+    // var console_size = @intCast(u32, (csbi.srWindow.Right - csbi.srWindow.Left + 1) * (csbi.srWindow.Bottom - csbi.srWindow.Top + 1));
+
+    // Fill screen with blanks
+    if (windows.kernel32.FillConsoleOutputCharacterA(hConsole, @as(windows.TCHAR, ' '), console_size, start_pos, &chars_written) == 0) {
+        return error.SomeDrawError; // TODO: seriously need real errors
+    }
+
+    // Get the current text attribute
+    // csbi = try getScreenBufferInfo(hConsole);
+
+    if (windows.kernel32.FillConsoleOutputAttribute(hConsole, csbi.wAttributes, console_size, start_pos, &chars_written) == 0) {
+        return error.SomeDrawError;
+    }
+}
+
+fn getConsoleHandle() !windows.HANDLE {
+    return windows.kernel32.GetStdHandle(windows.STD_OUTPUT_HANDLE) orelse error.InvalidHandle;
+}
+
+fn getScreenBufferInfo(hConsole: windows.HANDLE) !windows.kernel32.CONSOLE_SCREEN_BUFFER_INFO {
+    var csbi: windows.kernel32.CONSOLE_SCREEN_BUFFER_INFO = undefined;
+    if (windows.kernel32.GetConsoleScreenBufferInfo(hConsole, &csbi) == 0) return error.FailedToGetBuffer; // TODO: use GetLastError and zig wrapper function to return real error value
+    return csbi;
 }

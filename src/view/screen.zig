@@ -99,6 +99,10 @@ pub const Screen = struct {
         self.diff_buffer.deinit();
     }
 
+    pub fn clear(self: *Self) !void {
+        try backend.screen.clearScreen();
+    }
+
     pub fn draw(self: *Self) !void {
         // TODO
     }
