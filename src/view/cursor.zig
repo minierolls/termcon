@@ -10,19 +10,21 @@ const view = @import("../view.zig");
 pub const Position = view.Position;
 
 pub const Cursor = struct {
-    pub fn getPosition() !Position {
+    const Self = @This();
+
+    pub fn getPosition(self: *Self) !Position {
         return cursor.getPosition();
     }
 
-    pub fn setPosition(position: Position) !void {
+    pub fn setPosition(self: *Self, position: Position) !void {
         return cursor.setPosition(position);
     }
 
-    pub fn getVisibility() bool {
+    pub fn getVisibility(self: *Self) bool {
         return cursor.getVisibility();
     }
 
-    pub fn setVisibility(visible: bool) !void {
+    pub fn setVisibility(self: *Self, visible: bool) !void {
         return cursor.setVisibility(visible);
     }
 };

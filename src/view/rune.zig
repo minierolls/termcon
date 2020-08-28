@@ -3,4 +3,12 @@
 // SPDX-License-Identifier: MIT
 // This file is part of the `termcon` project under the MIT license.
 
-pub const Rune = u8;
+pub const Rune = packed struct {
+    value: u8,
+
+    const Self = @This();
+
+    pub fn equal(self: *const Self, other: Rune) bool {
+        return self.value == other.value;
+    }
+};

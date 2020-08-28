@@ -7,12 +7,28 @@ pub const Style = struct {
     fg_color: Color,
     bg_color: Color,
     text_decorations: TextDecorations,
+
+    const Self = @This();
+
+    pub fn equal(self: *const Self, other: Style) bool {
+        return self.fg_color.equal(other.fg_color) and
+            self.bg_color.equal(other.bg_color) and
+            self.text_decorations.equal(other.text_decorations);
+    }
 };
 
 pub const TextDecorations = struct {
     italic: bool,
     bold: bool,
     underline: bool,
+
+    const Self = @This();
+
+    pub fn equal(self: *const Self, other: TextDecorations) bool {
+        return (self.italic == other.italic and
+            self.bold == other.bold and
+            self.underline == other.underline);
+    }
 };
 
 pub const Color = union(ColorType) {
@@ -21,6 +37,19 @@ pub const Color = union(ColorType) {
     Named16: ColorNamed16,
     Bit8: ColorBit8,
     Bit24: ColorBit24,
+
+    const Self = @This();
+
+    pub fn equal(self: *const Self, other: Color) bool {
+        if (@TagType(self) != @TagType(other)) return false;
+        return switch (self) {
+            ColorType.Default => |v| v == other.Default,
+            ColorType.Named8 => |v| v == other.Named8,
+            ColorType.Named16 => |v| v == other.Named16,
+            ColorType.Bit8 => |v| v.code == other.Bit8.code,
+            ColorType.Bit24 => |v| v.code == other.Bit24.code,
+        };
+    }
 };
 
 pub const ColorType = enum {

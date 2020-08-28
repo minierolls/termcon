@@ -19,26 +19,39 @@ pub const Size = struct {
 };
 
 pub const Screen = struct {
-    // TODO: Figure out what Zig idiomatic mutex/async protection is,
-    //       and implement for Screen
-    size: Size,
+    // TODO: Implement mutex for screen
+    // lock: std.Mutex
+    allocator: *std.mem.Allocator,
     cursor: Cursor,
     default_style: Style,
-    allocator: *std.mem.Allocator,
+    size: Size,
+    buffer_size: Size,
     rune_buffer: std.ArrayList(Rune),
     style_buffer: std.ArrayList(Style),
-    buffer_size: Size,
+    diff_buffer: std.PriorityQueue(Position),
 
     const Self = @This();
 
+    fn positionLess(a: Position, b: Position) bool {
+        return a.less(b);
+    }
+
+    fn addChecked(
+        diff_buffer: *std.PriorityQueue(Position),
+        elem: Position,
+    ) !void {
+        for (diff_buffer.items) |item| {
+            if (elem.equal(item)) {
+                return;
+            }
+        }
+        return diff_buffer.add(elem);
+    }
+
     pub fn init(allocator: *std.mem.Allocator, buffer_size: ?Size) !Screen {
         var result: Screen = Screen{
-            .size = Size{ .rows = 0, .cols = 0 },
-            .cursor = Cursor{},
             .allocator = allocator,
-            .rune_buffer = std.ArrayList(Rune).init(allocator),
-            .style_buffer = std.ArrayList(Style).init(allocator),
-            .buffer_size = buffer_size orelse Size{ .rows = 300, .cols = 100 },
+            .cursor = Cursor{},
             .default_style = Style{
                 .fg_color = view.Color{
                     .Default = view.ColorDefault.Foreground,
@@ -52,6 +65,11 @@ pub const Screen = struct {
                     .underline = false,
                 },
             },
+            .size = Size{ .rows = 0, .cols = 0 },
+            .buffer_size = buffer_size orelse Size{ .rows = 300, .cols = 100 },
+            .rune_buffer = std.ArrayList(Rune).init(allocator),
+            .style_buffer = std.ArrayList(Style).init(allocator),
+            .diff_buffer = std.PriorityQueue(Position).init(allocator, positionLess),
         };
         try result.updateSize();
 
@@ -78,23 +96,14 @@ pub const Screen = struct {
     pub fn deinit(self: *Self) void {
         self.rune_buffer.deinit();
         self.style_buffer.deinit();
+        self.diff_buffer.deinit();
     }
 
-    pub fn draw(
-        self: *Self,
-        buffer_origin: ?Position,
-        screen_origin: ?Position,
-    ) !void {
-        try self.drawPartial(
-            Size{
-                .rows = self.size.rows - screen_origin.row,
-                .cols = self.size.cols - screen_origin.col,
-            },
-            buffer_origin,
-            screen_origin,
-        );
+    pub fn draw(self: *Self) !void {
+        // TODO
     }
 
+    // TODO: Remove
     pub fn drawPartial(
         self: *Self,
         size: Size,
@@ -201,7 +210,7 @@ pub const Screen = struct {
     }
 
     pub fn getBufferSize(self: *const Self) Size {
-        return self.size;
+        return self.buffer_size;
     }
 
     /// Resize the buffer. This function call is expensive; try to minimize
@@ -272,6 +281,18 @@ pub const Screen = struct {
                     self.style_buffer.items[start_empty..end_empty],
                     fill_cell.style orelse self.default_style,
                 );
+                {
+                    var index: u16 = start_empty;
+                    while (index < end_empty) : (index += 1) {
+                        if (self.default_style.equal(self.style_buffer[index])) {
+                            try addChecked(&self.diff_buffer, Position{
+                                .row = index / self.buffer_size.rows,
+                                .col = index % self.buffer_size.cols,
+                            });
+                            self.style_buffer[index] = style;
+                        }
+                    }
+                }
             }
         }
 
@@ -288,6 +309,18 @@ pub const Screen = struct {
                 self.style_buffer.items[start_empty..end_empty],
                 fill_cell.style orelse self.default_style,
             );
+            {
+                var index: u16 = start_empty;
+                while (index < end_empty) : (index += 1) {
+                    if (self.default_style.equal(self.style_buffer[index])) {
+                        try addChecked(&self.diff_buffer, Position{
+                            .row = index / self.buffer_size.rows,
+                            .col = index % self.buffer_size.cols,
+                        });
+                        self.style_buffer[index] = style;
+                    }
+                }
+            }
         }
 
         self.buffer_size.rows = size.rows;
@@ -298,7 +331,20 @@ pub const Screen = struct {
         return self.default_style;
     }
 
-    pub fn setDefaultStyle(self: *Self, style: Style) void {
+    pub fn setDefaultStyle(self: *Self, style: Style) !void {
+        if (self.default_style.equal(style)) return;
+        {
+            var index: u16 = 0;
+            while (index < self.style_buffer.len) : (index += 1) {
+                if (self.default_style.equal(self.style_buffer[index])) {
+                    try addChecked(&self.diff_buffer, Position{
+                        .row = index / self.buffer_size.rows,
+                        .col = index % self.buffer_size.cols,
+                    });
+                    self.style_buffer[index] = style;
+                }
+            }
+        }
         self.default_style = style;
     }
 
@@ -323,6 +369,10 @@ pub const Screen = struct {
             return error.OutOfRange;
 
         const index = position.row * self.buffer_size.cols + position.col;
+
+        if (!self.rune_buffer.items[index].equal(cell.rune) or
+            !self.style_buffer.items[index].equal(cell.style))
+            addChecked(&self.diff_buffer, position);
 
         self.rune_buffer.items[index] = cell.rune;
         self.style_buffer.items[index] = cell.style;

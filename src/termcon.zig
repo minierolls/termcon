@@ -54,6 +54,7 @@ pub const TermCon = struct {
         if (self.event_handler) |*handler| {
             handler.deinit();
         }
+        self.event_handler = null;
         backend.deinit();
     }
 };
