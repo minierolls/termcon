@@ -8,6 +8,7 @@
 !CONTRIBUTING.md
 !LICENSE
 !.gitignore
+!.github/**
 !build.zig
 
 !**/*.zig
