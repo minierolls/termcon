@@ -18,7 +18,6 @@ pub const Style = style.Style;
 pub const TextDecorations = style.TextDecorations;
 pub const Color = style.Color;
 pub const ColorType = style.ColorType;
-pub const ColorDefault = style.ColorDefault;
 pub const ColorNamed8 = style.ColorNamed8;
 pub const ColorNamed16 = style.ColorNamed16;
 pub const ColorBit8 = style.ColorBit8;

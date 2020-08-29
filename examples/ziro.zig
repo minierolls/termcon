@@ -11,6 +11,13 @@
 const std = @import("std");
 
 const termcon = @import("termcon");
+const Rune = termcon.view.Rune;
+const Position = termcon.view.Position;
+const Cell = termcon.view.Cell;
+const Style = termcon.view.Style;
+const Color = termcon.view.Color;
+const ColorBit8 = termcon.view.ColorBit8;
+const TextDecorations = termcon.view.TextDecorations;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -29,10 +36,26 @@ pub fn main() !void {
     // std.debug.warn("cpos: x:{} y:{}", .{cpos.col, cpos.row});
 
     try tcon.screen.setCell(
-        termcon.view.Position{ .row = 0, .col = 0 },
-        termcon.view.Cell{
+        Position{ .row = 0, .col = 0 },
+        Cell{
+            .rune = 'X',
+            .style = Style{
+                .fg_color = Color{ .Bit8 = ColorBit8{ .code = 148 } },
+                .bg_color = Color{ .Bit8 = ColorBit8{ .code = 197 } },
+                .text_decorations = TextDecorations{
+                    .italic = false,
+                    .bold = true,
+                    .underline = false,
+                },
+            },
+        },
+    );
+    try tcon.screen.setCell(
+        Position{ .row = 0, .col = 1 },
+        Cell{
             .rune = 'X',
             .style = tcon.screen.getDefaultStyle(),
         },
     );
+    try tcon.screen.draw();
 }

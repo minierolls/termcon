@@ -53,12 +53,8 @@ pub const Screen = struct {
             .allocator = allocator,
             .cursor = Cursor{},
             .default_style = Style{
-                .fg_color = view.Color{
-                    .Default = view.ColorDefault.Foreground,
-                },
-                .bg_color = view.Color{
-                    .Default = view.ColorDefault.Background,
-                },
+                .fg_color = view.Color.Default,
+                .bg_color = view.Color.Default,
                 .text_decorations = view.TextDecorations{
                     .italic = false,
                     .bold = false,

@@ -32,7 +32,7 @@ pub const TextDecorations = struct {
 };
 
 pub const Color = union(ColorType) {
-    Default: ColorDefault,
+    Default: u0,
     Named8: ColorNamed8,
     Named16: ColorNamed16,
     Bit8: ColorBit8,
@@ -43,7 +43,7 @@ pub const Color = union(ColorType) {
     pub fn equal(self: Self, other: Color) bool {
         if (@as(ColorType, self) != @as(ColorType, other)) return false;
         return switch (self) {
-            ColorType.Default => |v| v == other.Default,
+            ColorType.Default => true,
             ColorType.Named8 => |v| v == other.Named8,
             ColorType.Named16 => |v| v == other.Named16,
             ColorType.Bit8 => |v| v.code == other.Bit8.code,
@@ -58,16 +58,6 @@ pub const ColorType = enum {
     Named16,
     Bit8,
     Bit24,
-};
-
-pub const ColorDefault = enum {
-    Foreground,
-    Background,
-    SelectionForeground,
-    SelectionBackground,
-    CursorForeground,
-    CursorBackground,
-    Bold,
 };
 
 /// Color names and values based on:
