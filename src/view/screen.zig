@@ -102,6 +102,7 @@ pub const Screen = struct {
     }
 
     pub fn draw(self: *Self) !void {
+        if (self.diff_buffer.count() == 0) return;
         const orig_cursor: Position = try self.cursor.getPosition();
         while (self.diff_buffer.count() > 0) {
             // Get row range to draw
