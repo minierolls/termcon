@@ -54,8 +54,8 @@ pub fn getPosition() !Position {
     }
 
     return Position{
-        .row = rows,
-        .col = cols,
+        .row = rows - 1,
+        .col = cols - 1,
     };
 }
 
