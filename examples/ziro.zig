@@ -57,5 +57,15 @@ pub fn main() !void {
             .style = tcon.screen.getDefaultStyle(),
         },
     );
+    try tcon.screen.fillRunes(Position{ .row = 1, .col = 0 }, 'A', 8);
+    try tcon.screen.fillStyles(Position{ .row = 1, .col = 0 }, Style{
+        .fg_color = Color{ .Bit8 = ColorBit8{ .code = 183 } },
+        .bg_color = Color{ .Bit8 = ColorBit8{ .code = 238 } },
+        .text_decorations = TextDecorations{
+            .italic = true,
+            .underline = true,
+            .bold = false,
+        },
+    }, 4);
     try tcon.screen.draw();
 }

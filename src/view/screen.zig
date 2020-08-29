@@ -281,7 +281,8 @@ pub const Screen = struct {
     }
 
     pub fn getCell(self: *const Self, position: Position) !Cell {
-        if (position.row >= self.buffer_size.rows or position.col >= self.buffer_size.cols)
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols)
             return error.OutOfRange;
 
         const index = position.row * self.buffer_size.cols + position.col;
@@ -292,12 +293,9 @@ pub const Screen = struct {
         };
     }
 
-    pub fn setCell(
-        self: *Self,
-        position: Position,
-        cell: Cell,
-    ) !void {
-        if (position.row >= self.buffer_size.rows or position.col >= self.buffer_size.cols)
+    pub fn setCell(self: *Self, position: Position, cell: Cell) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols)
             return error.OutOfRange;
 
         const index = position.row * self.buffer_size.cols + position.col;
@@ -308,5 +306,154 @@ pub const Screen = struct {
 
         self.rune_buffer.items[index] = cell.rune;
         self.style_buffer.items[index] = cell.style;
+    }
+
+    pub fn fillCells(self: *Self, position: Position, cell: Cell, length: u16) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col + length >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        {
+            var offset: u16 = 0;
+            while (offset < length) : (offset += 1) {
+                if (self.rune_buffer.items[index + offset] != cell.rune or
+                    !cell.style.equal(self.style_buffer.items[index + offset]))
+                    try addChecked(&self.diff_buffer, Position{
+                        .row = position.row,
+                        .col = position.col + offset,
+                    });
+
+                self.rune_buffer.items[index + offset] = cell.rune;
+                self.style_buffer.items[index + offset] = cell.style;
+            }
+        }
+    }
+
+    pub fn getRune(self: *const Self, position: Position) !Rune {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        return self.rune_buffer.items[index];
+    }
+
+    pub fn setRune(self: *Self, position: Position, rune: Rune) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        if (self.rune_buffer.items[index] != rune)
+            try addChecked(&self.diff_buffer, position);
+
+        self.rune_buffer.items[index] = rune;
+    }
+
+    pub fn setRunes(self: *Self, position: Position, runes: []Rune) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols or
+            position.col + runes.len >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        for (runes) |rune, offset| {
+            if (self.rune_buffer.items[index + offset] != rune)
+                try addChecked(&self.diff_buffer, Position{
+                    .row = position.row,
+                    .col = position.col + offset,
+                });
+
+            self.rune_buffer.items[index + offset] = rune;
+        }
+    }
+
+    pub fn fillRunes(self: *Self, position: Position, rune: Rune, length: u16) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col + length >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        {
+            var offset: u16 = 0;
+            while (offset < length) : (offset += 1) {
+                if (self.rune_buffer.items[index + offset] != rune)
+                    try addChecked(&self.diff_buffer, Position{
+                        .row = position.row,
+                        .col = position.col + offset,
+                    });
+
+                self.rune_buffer.items[index + offset] = rune;
+            }
+        }
+    }
+
+    pub fn getStyle(self: *const Self, position: Position) !Style {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        return self.style_buffer.items[index];
+    }
+
+    pub fn setStyle(self: *Self, position: Position, style: Style) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        if (!style.equal(self.style_buffer.items[index]))
+            try addChecked(&self.diff_buffer, position);
+
+        self.style_buffer.items[index] = style;
+    }
+
+    pub fn setStyles(self: *Self, position: Position, styles: []Styles) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col >= self.buffer_size.cols or
+            position.col + styles.len >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        for (styles) |style, offset| {
+            if (!style.equal(self.style_buffer.items[index + offset]))
+                try addChecked(&self.diff_buffer, Position{
+                    .row = position.row,
+                    .col = position.col + offset,
+                });
+
+            self.style_buffer.items[index + offset] = style;
+        }
+    }
+
+    pub fn fillStyles(self: *Self, position: Position, style: Style, length: u16) !void {
+        if (position.row >= self.buffer_size.rows or
+            position.col + length >= self.buffer_size.cols)
+            return error.OutOfRange;
+
+        const index = position.row * self.buffer_size.cols + position.col;
+
+        {
+            var offset: u16 = 0;
+            while (offset < length) : (offset += 1) {
+                if (!style.equal(self.style_buffer.items[index + offset]))
+                    try addChecked(&self.diff_buffer, Position{
+                        .row = position.row,
+                        .col = position.col + offset,
+                    });
+
+                self.style_buffer.items[index + offset] = style;
+            }
+        }
     }
 };
