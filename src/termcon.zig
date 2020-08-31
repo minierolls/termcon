@@ -25,6 +25,7 @@ pub const TermCon = struct {
     screen: view.Screen,
     event_handler: ?event.Handler,
     supported_features: SupportedFeatures,
+    options: Options,
 
     const Self = @This();
 
@@ -37,7 +38,6 @@ pub const TermCon = struct {
 
         if (options.alternate_screen) {
             try backend.config.setAlternateScreen(true);
-            try backend.screen.clearScreen();
         }
 
         var screen = try view.Screen.init(allocator, null);
@@ -51,6 +51,7 @@ pub const TermCon = struct {
             .screen = screen,
             .event_handler = event_handler,
             .supported_features = supported_features,
+            .options = options,
         };
     }
     pub fn deinit(self: *Self) void {
@@ -59,6 +60,15 @@ pub const TermCon = struct {
             handler.deinit();
         }
         self.event_handler = null;
+
+        if (self.options.alternate_screen) {
+            backend.config.setAlternateScreen(false) catch {};
+        }
+
+        if (self.options.raw_mode) {
+            backend.config.setRawMode(false) catch {};
+        }
+
         backend.deinit();
     }
 };

@@ -271,6 +271,7 @@ pub fn write(runes: []const Rune, styles: []const Style) !void {
         }
     }
     _ = try stdout.writer().write(runes[orig_style_index..]);
+    _ = try stdout.writer().write("\x1b[0m");
 }
 
 /// Clear all runes and styles at the cursor's row.
